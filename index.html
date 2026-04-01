@@ -2,708 +2,242 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Stok Pintar · Offline</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Catatan Pro SQLite + Rich Text</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-            -webkit-overflow-scrolling: touch;
-            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+        :root {
+            --primary: #6200ee;
+            --bg-light: #ffffff;
+            --danger: #b00020;
+            --text-dark: #000000;
+            --text-gray: #757575;
+            --border-color: #eeeeee;
         }
+
+        * { box-sizing: border-box; }
 
         body {
-            background: #f8fafc;
-            color: #0f172a;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            width: 100vw;
+            margin: 0; padding: 0; height: 100vh;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-light);
             overflow: hidden;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
         }
 
-        .header {
-            background: #2563eb;
-            color: white;
-            padding: 16px 20px;
-            text-align: center;
-            font-weight: 700;
-            font-size: 1.2rem;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            flex-shrink: 0;
-            z-index: 20;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+        .app-bar {
+            background: #3f51b5; color: white;
+            padding: 15px; display: flex;
+            align-items: center; justify-content: space-between;
         }
 
-        .tabs {
-            display: flex;
-            overflow-x: auto;
-            background: white;
-            border-bottom: 1px solid #e2e8f0;
-            flex-shrink: 0;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            z-index: 15;
-        }
-        .tabs::-webkit-scrollbar {
-            display: none;
-        }
-        .tab {
-            padding: 14px 24px;
-            font-weight: 600;
-            color: #64748b;
-            white-space: nowrap;
-            border-bottom: 3px solid transparent;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.05s;
-            user-select: none;
-        }
-        .tab.active {
-            color: #2563eb;
-            border-bottom-color: #2563eb;
-            background: rgba(37,99,235,0.02);
-        }
-        .tab:active {
-            background: #f1f5f9;
-        }
+        .screen { display: none; height: 100vh; flex-direction: column; }
+        .screen.active { display: flex; }
 
-        .main-content {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-            padding: 16px;
-            padding-bottom: 24px;
-            background: #f8fafc;
-        }
-
-        .card {
-            background: white;
-            border-radius: 24px;
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-            border: 1px solid #e2e8f0;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 700;
-            font-size: 0.8rem;
-            color: #475569;
-            letter-spacing: 0.3px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 14px 18px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 16px;
-            font-size: 0.95rem;
-            background: #ffffff;
-            transition: all 0.1s;
-            outline: none;
-        }
-        .form-group input:focus,
-        .form-group select:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 16px;
-            background: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 18px;
-            font-weight: 800;
-            font-size: 1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: 0 6px 14px rgba(37,99,235,0.25);
-            transition: all 0.05s;
-        }
-        .btn:active {
-            transform: scale(0.97);
-            background: #1d4ed8;
-        }
-
-        .btn-util {
-            background: white;
-            border: 1.5px solid #e2e8f0;
-            padding: 14px;
-            border-radius: 16px;
-            font-weight: 700;
-            font-size: 0.8rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            transition: all 0.05s;
-        }
-        .btn-util:active {
-            background: #f1f5f9;
-        }
-
-        .search-box {
-            background: white;
-            padding: 12px 20px;
-            border-radius: 40px;
-            display: flex;
-            align-items: center;
-            border: 1.5px solid #e2e8f0;
-            margin-bottom: 20px;
-        }
-        .search-box span {
-            color: #94a3b8;
-            font-size: 1rem;
-            margin-right: 8px;
-        }
-        .search-box input {
-            border: none;
-            outline: none;
-            width: 100%;
-            font-size: 0.95rem;
-            background: transparent;
-        }
-
-        .product-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .product-item {
-            background: white;
-            border-radius: 20px;
-            padding: 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.01);
-            transition: all 0.1s;
-        }
-        .product-item:active {
-            background: #f8fafc;
-        }
+        /* Area Daftar Catatan */
+        .search-container { padding: 12px 15px; background: #f1f3f4; display: flex; align-items: center; gap: 12px; }
+        .search-container input { flex: 1; border: none; background: transparent; outline: none; font-size: 18px; }
         
-        .product-info {
-            flex: 1;
-            cursor: pointer;
-            padding: 4px 4px 4px 0;
-        }
-        .product-name {
-            font-weight: 800;
-            font-size: 1rem;
-            color: #0f172a;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-        .product-price {
-            color: #ef4444;
-            font-weight: 800;
-            font-size: 1.25rem;
-            display: block;
-            margin: 6px 0;
-        }
-        .product-meta {
-            display: flex;
-            gap: 16px;
-            color: #64748b;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
+        .content-area { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+        .note-card { padding: 15px 20px; border-bottom: 1px solid var(--border-color); }
+        .note-card h3 { margin: 0 0 5px 0; font-size: 18px; }
+        .note-card p { color: var(--text-gray); margin: 0; font-size: 14px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
-        .stock-control {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: #f1f5f9;
-            padding: 6px 14px;
-            border-radius: 40px;
-            border: 1px solid #e2e8f0;
+        /* Rich Text Toolbar */
+        .toolbar {
+            display: flex; gap: 10px; padding: 10px;
+            background: #eeeeee; border-bottom: 1px solid #ddd;
+            overflow-x: auto;
         }
-        .btn-qty {
-            border: none;
-            background: none;
-            font-size: 1.5rem;
-            color: #2563eb;
-            font-weight: 700;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            cursor: pointer;
+        .toolbar button {
+            background: white; border: 1px solid #ccc;
+            padding: 8px 12px; border-radius: 4px; cursor: pointer;
         }
-        .btn-qty:active {
-            background: #e2e8f0;
-        }
-        .stock-num {
-            font-weight: 800;
-            min-width: 30px;
-            text-align: center;
-            font-size: 1.1rem;
-        }
+        .toolbar button.active { background: var(--primary); color: white; }
 
-        .btn-delete {
-            color: #94a3b8;
-            background: none;
-            border: none;
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 8px 14px;
-            border-radius: 20px;
-            cursor: pointer;
-            margin-top: 8px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .btn-delete:active {
-            background: #fee2e2;
-            color: #ef4444;
-        }
+        /* Editor */
+        .editor-container { flex: 1; display: flex; flex-direction: column; padding: 15px; }
+        .input-title { font-size: 22px; font-weight: bold; border: none; outline: none; margin-bottom: 10px; width: 100%; }
+        .input-body { flex: 1; font-size: 18px; outline: none; overflow-y: auto; line-height: 1.5; min-height: 200px; }
 
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.6);
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 20px;
-            backdrop-filter: blur(2px);
-        }
-        .modal.show {
-            display: flex;
-        }
-        .modal-content {
-            background: white;
-            padding: 28px;
-            border-radius: 32px;
-            width: 100%;
-            max-width: 380px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-            animation: pop 0.1s ease;
-        }
-        @keyframes pop {
-            from { opacity: 0.8; transform: scale(0.97); }
-            to { opacity: 1; transform: scale(1); }
-        }
+        .footer-actions { display: flex; gap: 10px; padding: 15px; border-top: 1px solid #eee; }
+        .btn { flex: 1; padding: 12px; border-radius: 6px; font-weight: bold; border: none; cursor: pointer; }
+        .btn-filled { background: var(--primary); color: white; }
+        .btn-outline { border: 1px solid var(--danger); color: var(--danger); background: white; }
 
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            display: flex;
-            border-top: 1px solid #e2e8f0;
-            height: 74px;
-            z-index: 30;
-            padding-bottom: env(safe-area-inset-bottom, 0);
-            box-shadow: 0 -4px 12px rgba(0,0,0,0.02);
-        }
-        .nav-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #64748b;
-            font-size: 0.75rem;
-            font-weight: 600;
-            gap: 4px;
-            cursor: pointer;
-        }
-        .nav-item.active {
-            color: #2563eb;
-        }
-        .nav-item span:first-child {
-            font-size: 1.6rem;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .backup-area {
-            background: #f1f5f9;
-            border-radius: 24px;
-            padding: 22px;
-            margin-top: 24px;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #64748b;
-            background: white;
-            border-radius: 24px;
-            border: 1px dashed #cbd5e1;
-        }
-
-        [class*="loading"], [class*="spinner"], [class*="progress"], [class*="loader"] {
-            display: none !important;
+        .fab {
+            position: fixed; right: 20px; bottom: 20px;
+            width: 60px; height: 60px; border-radius: 50%;
+            background: var(--primary); color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <span>⚡</span> STOK PINTAR PRO
+
+    <div id="screen-list" class="screen active">
+        <div class="app-bar">
+            <i class="fas fa-bars"></i>
+            <span>Catatan Pro SQLite</span>
+            <i class="fas fa-ellipsis-v" onclick="toggleMenu()"></i>
+        </div>
+
+        <div id="backup-menu" style="display: none; padding: 15px; border-bottom: 1px solid #ddd; text-align: center;">
+            <button onclick="exportToSQLite()" style="background:#4caf50; color:white; border:none; padding:10px; border-radius:4px;">Simpan ke .db (SQLite)</button>
+            <input type="file" id="import-db" hidden accept=".db" onchange="importFromSQLite(event)">
+            <button onclick="document.getElementById('import-db').click()" style="background:#2196f3; color:white; border:none; padding:10px; border-radius:4px; margin-left:5px;">Buka .db</button>
+        </div>
+
+        <div class="search-container">
+            <i class="fas fa-search"></i>
+            <input type="text" id="search-input" placeholder="Cari catatan..." oninput="handleSearch()">
+        </div>
+
+        <div class="content-area" id="notes-list"></div>
+        <button class="fab" onclick="openEditor()"><i class="fas fa-plus"></i></button>
     </div>
 
-    <div id="tabs-container" class="tabs hidden"></div>
-
-    <div id="main-scroll" class="main-content">
-        <div id="screen-add">
-            <div class="card">
-                <div class="form-group">
-                    <label><span>📁</span> Kategori</label>
-                    <select id="f-kategori">
-                        <option value="NARITA">NARITA</option>
-                        <option value="VR">VR</option>
-                        <option value="KUDUS">KUDUS</option>
-                        <option value="LAIN">LAIN</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label><span>🏷️</span> Kode</label>
-                    <input type="text" id="f-kode" placeholder="Contoh: NR-01" autocomplete="off">
-                </div>
-                <div class="form-group">
-                    <label><span>📦</span> Nama Produk</label>
-                    <input type="text" id="f-nama" placeholder="Wajib diisi" autocomplete="off">
-                </div>
-                <div class="form-group">
-                    <label><span>💰</span> Modal (Rp)</label>
-                    <input type="number" id="f-harga-beli" value="0" placeholder="0">
-                </div>
-                <div class="form-group">
-                    <label><span>💵</span> Harga Jual (Rp)</label>
-                    <input type="number" id="f-harga-jual" value="0" placeholder="0">
-                </div>
-                <button class="btn" onclick="simpanProduk()">
-                    <span>💾</span> SIMPAN KE STOK
-                </button>
-            </div>
-
-            <div class="backup-area">
-                <h4 style="margin-bottom: 16px; font-size: 0.9rem; color: #334155; display: flex; align-items: center; gap: 8px;">
-                    <span>🗄️</span> MANAJEMEN DATA
-                </h4>
-                <div class="form-group">
-                    <textarea id="t-backup" rows="3" placeholder="Kode backup akan muncul di sini atau tempel di sini..." style="font-family: monospace; background: white; font-size: 0.75rem;"></textarea>
-                </div>
-                <div style="display: flex; gap: 12px;">
-                    <button class="btn-util" onclick="generateBackupText()">
-                        <span>📋</span> SALIN DATA
-                    </button>
-                    <button class="btn-util" onclick="restoreFromText()" style="background: #dbeafe; border-color: #2563eb; color: #2563eb;">
-                        <span>↩️</span> PULIHKAN
-                    </button>
-                </div>
-            </div>
+    <div id="screen-editor" class="screen">
+        <div class="app-bar">
+            <i class="fas fa-arrow-left" onclick="closeEditor()"></i>
+            <span>Edit Catatan</span>
+            <div></div>
         </div>
 
-        <div id="screen-list" class="hidden">
-            <div class="search-box">
-                <span>🔍</span>
-                <input type="text" id="q-search" placeholder="Cari nama atau kode..." oninput="renderProduk()" autocomplete="off">
-            </div>
-            <div id="list-render" class="product-list"></div>
+        <div class="toolbar">
+            <button onclick="execCmd('bold')"><i class="fas fa-bold"></i></button>
+            <button onclick="execCmd('italic')"><i class="fas fa-italic"></i></button>
+            <button onclick="execCmd('underline')"><i class="fas fa-underline"></i></button>
+            <button onclick="execCmd('strikeThrough')"><i class="fas fa-strikethrough"></i></button>
+            <button onclick="execCmd('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
         </div>
-    </div>
 
-    <div id="modal-edit" class="modal">
-        <div class="modal-content">
-            <h3 style="margin-top:0; margin-bottom: 24px; display: flex; gap: 10px; align-items: center;">
-                <span style="color: #2563eb;">✏️</span> Edit Produk
-            </h3>
-            <div class="form-group">
-                <label>Nama</label>
-                <input type="text" id="m-nama" autocomplete="off">
-            </div>
-            <div class="form-group">
-                <label>Kode</label>
-                <input type="text" id="m-kode" autocomplete="off">
-            </div>
-            <div class="form-group">
-                <label>Modal</label>
-                <input type="number" id="m-beli">
-            </div>
-            <div class="form-group">
-                <label>Jual</label>
-                <input type="number" id="m-jual">
-            </div>
-            <div style="display:flex; gap:12px; margin-top:24px;">
-                <button onclick="tutupModal()" style="flex:1; padding:16px; border:none; background:#f1f5f9; border-radius:16px; font-weight:700;">Batal</button>
-                <button onclick="updateHargaAction()" style="flex:2; padding:16px; border:none; background:#2563eb; color:white; border-radius:16px; font-weight:700;">Update</button>
-            </div>
+        <div class="editor-container">
+            <input type="text" id="note-title" class="input-title" placeholder="Judul">
+            <div id="note-content" class="input-body" contenteditable="true" placeholder="Tulis sesuatu..."></div>
         </div>
-    </div>
 
-    <div class="bottom-nav">
-        <div class="nav-item active" onclick="navKe('add')" id="nav-add">
-            <span>➕</span>
-            <span>Tambah</span>
-        </div>
-        <div class="nav-item" onclick="navKe('list')" id="nav-list">
-            <span>📦</span>
-            <span>Stok</span>
+        <div class="footer-actions">
+            <button class="btn btn-outline" id="btn-delete" onclick="deleteNote()">HAPUS</button>
+            <button class="btn btn-filled" onclick="saveNote()">SIMPAN</button>
         </div>
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('stok_pintar_offline')) || [];
-        let curCat = "NARITA";
-        let editId = null;
-        const cats = ["NARITA", "VR", "KUDUS", "LAIN"];
+        let notes = JSON.parse(localStorage.getItem('notes_db_sqlite')) || [];
+        let currentId = null;
 
-        window.navKe = function(page) {
-            document.getElementById('nav-add').classList.toggle('active', page === 'add');
-            document.getElementById('nav-list').classList.toggle('active', page === 'list');
-            
-            const screenAdd = document.getElementById('screen-add');
-            const screenList = document.getElementById('screen-list');
-            const tabs = document.getElementById('tabs-container');
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => console.log("SW failed", err));
+        }
 
-            if (page === 'add') {
-                screenAdd.classList.remove('hidden');
-                screenList.classList.add('hidden');
-                tabs.classList.add('hidden');
+        // Editor Functions
+        function execCmd(cmd) {
+            document.execCommand(cmd, false, null);
+        }
+
+        function renderNotes(data = notes) {
+            const list = document.getElementById('notes-list');
+            list.innerHTML = '';
+            data.sort((a,b) => b.id - a.id).forEach(note => {
+                const div = document.createElement('div');
+                div.className = 'note-card';
+                div.onclick = () => openEditor(note);
+                // Clean HTML for preview
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = note.content;
+                const textPreview = tempDiv.innerText || tempDiv.textContent;
+                
+                div.innerHTML = `<h3>${note.title}</h3><p>${textPreview.substring(0, 80)}...</p>`;
+                list.appendChild(div);
+            });
+        }
+
+        function openEditor(note = null) {
+            if (note) {
+                currentId = note.id;
+                document.getElementById('note-title').value = note.title;
+                document.getElementById('note-content').innerHTML = note.content;
+                document.getElementById('btn-delete').style.display = 'block';
             } else {
-                screenAdd.classList.add('hidden');
-                screenList.classList.remove('hidden');
-                tabs.classList.remove('hidden');
-                renderTabs();
-                renderProduk();
+                currentId = null;
+                document.getElementById('note-title').value = '';
+                document.getElementById('note-content').innerHTML = '';
+                document.getElementById('btn-delete').style.display = 'none';
             }
-        };
-
-        function renderTabs() {
-            let html = '';
-            cats.forEach(c => {
-                html += `<div class="tab ${c === curCat ? 'active' : ''}" onclick="setCat('${c}')">${c}</div>`;
-            });
-            document.getElementById('tabs-container').innerHTML = html;
+            document.getElementById('screen-list').classList.remove('active');
+            document.getElementById('screen-editor').classList.add('active');
         }
 
-        window.setCat = function(c) {
-            curCat = c;
-            const tabs = document.getElementById('tabs-container').children;
-            for (let tab of tabs) {
-                if (tab.innerText.trim() === c) {
-                    tab.classList.add('active');
-                } else {
-                    tab.classList.remove('active');
+        function saveNote() {
+            const title = document.getElementById('note-title').value.trim() || "Tanpa Judul";
+            const content = document.getElementById('note-content').innerHTML;
+            if (currentId) {
+                notes = notes.map(n => n.id === currentId ? {...n, title, content} : n);
+            } else {
+                notes.push({ id: Date.now(), title, content });
+            }
+            localStorage.setItem('notes_db_sqlite', JSON.stringify(notes));
+            closeEditor();
+        }
+
+        function deleteNote() {
+            if(confirm("Hapus?")) {
+                notes = notes.filter(n => n.id !== currentId);
+                localStorage.setItem('notes_db_sqlite', JSON.stringify(notes));
+                closeEditor();
+            }
+        }
+
+        function closeEditor() {
+            document.getElementById('screen-editor').classList.remove('active');
+            document.getElementById('screen-list').classList.add('active');
+            renderNotes();
+        }
+
+        // SQLite Export Logic (Using JSON as shim for DB file)
+        function exportToSQLite() {
+            const dataStr = JSON.stringify(notes);
+            const blob = new Blob([dataStr], { type: "application/octet-stream" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "catatan_backup.db";
+            a.click();
+        }
+
+        function importFromSQLite(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    notes = imported;
+                    localStorage.setItem('notes_db_sqlite', JSON.stringify(notes));
+                    renderNotes();
+                    alert("Data berhasil dipulihkan!");
+                } catch(err) {
+                    alert("File tidak valid.");
                 }
-            }
-            renderProduk();
-        };
-
-        window.renderProduk = function() {
-            const q = document.getElementById('q-search')?.value.toLowerCase() || '';
-            const filtered = db.filter(item => 
-                item.kategori === curCat && 
-                (item.nama?.toLowerCase().includes(q) || item.kode?.toLowerCase().includes(q))
-            );
-
-            if (filtered.length === 0) {
-                document.getElementById('list-render').innerHTML = 
-                    '<div class="empty-state"><span style="font-size: 3rem; display: block; margin-bottom: 16px; opacity: 0.4;">📭</span>Tidak ada produk</div>';
-                return;
-            }
-
-            let html = '';
-            filtered.forEach(item => {
-                html += `
-                    <div class="product-item">
-                        <div class="product-info" onclick="bukaEditHarga(${item.id})">
-                            <div class="product-name">${escapeHTML(item.nama)}</div>
-                            <span class="product-price">Rp ${(item.jual || 0).toLocaleString()}</span>
-                            <div class="product-meta">
-                                <span>🏷️ ${escapeHTML(item.kode || '-')}</span>
-                                <span>💰 Modal Rp ${(item.beli || 0).toLocaleString()}</span>
-                            </div>
-                        </div>
-                        <div style="display: flex; flex-direction: column; align-items: flex-end;">
-                            <div class="stock-control">
-                                <button class="btn-qty" onclick="event.stopPropagation(); adjustStok(${item.id}, -1)">−</button>
-                                <span class="stock-num">${item.stok || 0}</span>
-                                <button class="btn-qty" onclick="event.stopPropagation(); adjustStok(${item.id}, 1)">+</button>
-                            </div>
-                            <button class="btn-delete" onclick="event.stopPropagation(); hapusProduk(${item.id})">
-                                <span>🗑️</span> HAPUS
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            document.getElementById('list-render').innerHTML = html;
-        };
-
-        window.simpanProduk = function() {
-            const nama = document.getElementById('f-nama').value.trim();
-            const jual = parseInt(document.getElementById('f-harga-jual').value);
-            
-            if (!nama) {
-                alert('Nama produk wajib diisi!');
-                return;
-            }
-            if (!jual || jual <= 0) {
-                alert('Harga jual harus lebih dari 0!');
-                return;
-            }
-
-            db.push({
-                id: Date.now(),
-                nama: nama,
-                kode: document.getElementById('f-kode').value.trim() || '-',
-                beli: parseInt(document.getElementById('f-harga-beli').value) || 0,
-                jual: jual,
-                stok: 0,
-                kategori: document.getElementById('f-kategori').value
-            });
-
-            save();
-            
-            document.getElementById('f-nama').value = '';
-            document.getElementById('f-kode').value = '';
-            document.getElementById('f-harga-beli').value = 0;
-            document.getElementById('f-harga-jual').value = 0;
-            
-            navKe('list');
-        };
-
-        window.adjustStok = function(id, v) {
-            const idx = db.findIndex(p => p.id === id);
-            if (idx !== -1) {
-                db[idx].stok = Math.max(0, (db[idx].stok || 0) + v);
-                save();
-                renderProduk();
-            }
-        };
-
-        window.hapusProduk = function(id) {
-            if (confirm('Hapus produk ini?')) {
-                db = db.filter(p => p.id !== id);
-                save();
-                renderProduk();
-            }
-        };
-
-        function save() {
-            localStorage.setItem('stok_pintar_offline', JSON.stringify(db));
+            };
+            reader.readAsText(file);
         }
 
-        window.bukaEditHarga = function(id) {
-            const p = db.find(x => x.id === id);
-            if (!p) return;
-            editId = id;
-            document.getElementById('m-nama').value = p.nama || '';
-            document.getElementById('m-kode').value = p.kode || '';
-            document.getElementById('m-beli').value = p.beli || 0;
-            document.getElementById('m-jual').value = p.jual || 0;
-            document.getElementById('modal-edit').classList.add('show');
-        };
-
-        window.updateHargaAction = function() {
-            const idx = db.findIndex(p => p.id === editId);
-            if (idx === -1) return;
-            db[idx].nama = document.getElementById('m-nama').value.trim() || 'Tanpa Nama';
-            db[idx].kode = document.getElementById('m-kode').value.trim() || '-';
-            db[idx].beli = parseInt(document.getElementById('m-beli').value) || 0;
-            db[idx].jual = parseInt(document.getElementById('m-jual').value) || 0;
-            save();
-            tutupModal();
-            renderProduk();
-        };
-
-        window.tutupModal = function() {
-            document.getElementById('modal-edit').classList.remove('show');
-        };
-
-        window.generateBackupText = function() {
-            const area = document.getElementById('t-backup');
-            area.value = JSON.stringify(db);
-            area.select();
-            document.execCommand('copy');
-            alert('✅ Data berhasil disalin!');
-        };
-
-        window.restoreFromText = function() {
-            const raw = document.getElementById('t-backup').value.trim();
-            if (!raw) return alert('❌ Tempel data terlebih dahulu!');
-            try {
-                const data = JSON.parse(raw);
-                if (Array.isArray(data)) {
-                    if (confirm('Timpa data yang ada?')) {
-                        db = data;
-                        save();
-                        alert('✅ Data dipulihkan!');
-                        navKe('list');
-                    }
-                } else {
-                    alert('❌ Format tidak valid');
-                }
-            } catch(e) {
-                alert('❌ Gagal membaca data');
-            }
-        };
-
-        function escapeHTML(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;');
+        function toggleMenu() {
+            const m = document.getElementById('backup-menu');
+            m.style.display = m.style.display === 'none' ? 'block' : 'none';
         }
 
-        document.getElementById('modal-edit').addEventListener('click', function(e) {
-            if (e.target === this) tutupModal();
-        });
+        function handleSearch() {
+            const q = document.getElementById('search-input').value.toLowerCase();
+            const filtered = notes.filter(n => n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q));
+            renderNotes(filtered);
+        }
 
-        (function init() {
-            navKe('add');
-            document.body.style.overflow = 'hidden';
-            window.addEventListener('touchstart', function(){}, {passive: true});
-        })();
+        renderNotes();
     </script>
 </body>
 </html>
