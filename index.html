@@ -17,6 +17,8 @@
             --primary-dark: #303f9f;
             --accent: #ff4081;
             --danger: #f44336;
+            --success: #4caf50;
+            --warning: #ff9800;
             --text-dark: #212121;
             --text-gray: #757575;
             --bg-light: #ffffff;
@@ -148,6 +150,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .fab:active {
+            transform: scale(0.95);
         }
 
         /* Editor Container */
@@ -178,12 +185,13 @@
             flex: 1;
             font-size: 1rem;
             text-align: center;
+            font-weight: 500;
         }
 
         /* Undo/Redo Bar */
         .action-bar {
             display: flex;
-            gap: 20px;
+            gap: 12px;
             padding: 8px 16px;
             background: var(--bg-gray);
             border-bottom: 1px solid var(--border);
@@ -191,24 +199,27 @@
         }
 
         .action-btn {
-            background: none;
-            border: none;
-            font-size: 1.1rem;
-            padding: 8px 12px;
+            background: white;
+            border: 1px solid var(--border);
             border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
             cursor: pointer;
-            color: var(--text-gray);
+            color: var(--text-dark);
             display: flex;
             align-items: center;
             gap: 6px;
+            transition: all 0.2s;
         }
 
         .action-btn:active {
-            background: rgba(0,0,0,0.05);
+            background: var(--primary);
+            color: white;
+            transform: scale(0.96);
         }
 
         .action-btn i {
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
 
         /* Formatting Toolbar - Keyboard Style */
@@ -228,27 +239,24 @@
             background: white;
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 1rem;
+            padding: 8px 12px;
+            font-size: 0.9rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             color: var(--text-dark);
+            min-width: 44px;
+            justify-content: center;
         }
 
         .format-btn:active {
             background: var(--primary);
             color: white;
             border-color: var(--primary);
-        }
-
-        .format-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
+            transform: scale(0.95);
         }
 
         /* Input Area */
@@ -271,6 +279,10 @@
             font-family: inherit;
         }
 
+        .editor-title:focus {
+            border-bottom: 2px solid var(--primary);
+        }
+
         .editor-body {
             width: 100%;
             border: none;
@@ -280,47 +292,77 @@
             min-height: 200px;
             background: transparent;
             font-family: inherit;
-            resize: none;
         }
 
         [contenteditable="true"] {
             outline: none;
         }
 
-        /* Bottom Actions */
+        [contenteditable="true"]:focus {
+            outline: none;
+        }
+
+        /* Bottom Actions - SEPERTI GAMBAR: HAPUS, SALIN, SIMPAN */
         .bottom-actions {
             display: flex;
             gap: 12px;
-            padding: 12px 16px;
+            padding: 16px 20px;
             background: white;
             border-top: 1px solid var(--border);
             flex-shrink: 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
         }
 
         .btn {
             flex: 1;
-            padding: 12px;
-            border-radius: 8px;
+            padding: 14px 12px;
+            border-radius: 12px;
             font-weight: 600;
             border: none;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Tombol HAPUS - seperti gambar */
         .btn-danger {
             background: var(--danger);
             color: white;
+            box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
         }
 
+        .btn-danger:active {
+            background: #d32f2f;
+        }
+
+        /* Tombol SALIN - seperti gambar */
+        .btn-copy {
+            background: #2196f3;
+            color: white;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+        }
+
+        .btn-copy:active {
+            background: #1976d2;
+        }
+
+        /* Tombol SIMPAN - seperti gambar */
         .btn-primary {
             background: var(--primary);
             color: white;
+            box-shadow: 0 2px 8px rgba(63, 81, 181, 0.3);
         }
 
-        .btn-outline {
-            background: white;
-            border: 1px solid var(--primary);
-            color: var(--primary);
+        .btn-primary:active {
+            background: var(--primary-dark);
         }
 
         /* Modal */
@@ -335,6 +377,7 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            backdrop-filter: blur(4px);
         }
 
         .modal.active {
@@ -344,10 +387,27 @@
         .modal-content {
             background: white;
             padding: 24px;
-            border-radius: 16px;
+            border-radius: 20px;
             width: 90%;
-            max-width: 320px;
+            max-width: 340px;
             text-align: center;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-content h3 {
+            margin-bottom: 16px;
+            color: var(--primary);
         }
 
         .modal-content textarea {
@@ -356,9 +416,10 @@
             margin: 16px 0;
             padding: 12px;
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 12px;
             font-family: monospace;
             font-size: 12px;
+            resize: vertical;
         }
 
         .modal-buttons {
@@ -370,9 +431,38 @@
         .modal-buttons button {
             flex: 1;
             padding: 10px;
-            border-radius: 8px;
+            border-radius: 10px;
             border: none;
             cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .modal-buttons button:active {
+            transform: scale(0.96);
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            z-index: 1100;
+            animation: fadeInOut 2s ease;
+            pointer-events: none;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
         }
 
         /* Utility */
@@ -405,7 +495,7 @@
             <div class="editor-header">
                 <i class="fas fa-arrow-left" onclick="closeEditor()"></i>
                 <h2>Edit Catatan</h2>
-                <i class="fas fa-trash-alt" onclick="deleteNote()" id="delete-icon" style="color: var(--danger);"></i>
+                <i class="fas fa-trash-alt" onclick="deleteNote()" id="delete-icon" style="color: var(--danger); opacity: 0.7;"></i>
             </div>
 
             <!-- Undo/Redo Bar -->
@@ -414,16 +504,17 @@
                 <button class="action-btn" onclick="redoAction()"><i class="fas fa-redo"></i> Redo</button>
             </div>
 
-            <!-- Formatting Toolbar -->
+            <!-- Formatting Toolbar - Keyboard Style -->
             <div class="format-toolbar" id="format-toolbar">
-                <button class="format-btn" onclick="formatText('bold')"><i class="fas fa-bold"></i> B</button>
-                <button class="format-btn" onclick="formatText('italic')"><i class="fas fa-italic"></i> I</button>
-                <button class="format-btn" onclick="formatText('underline')"><i class="fas fa-underline"></i> U</button>
-                <button class="format-btn" onclick="formatText('strikeThrough')"><i class="fas fa-strikethrough"></i> S</button>
-                <button class="format-btn" onclick="formatText('insertUnorderedList')"><i class="fas fa-list-ul"></i> •</button>
-                <button class="format-btn" onclick="formatText('insertOrderedList')"><i class="fas fa-list-ol"></i> 1.</button>
-                <button class="format-btn" onclick="setColor('red')"><i class="fas fa-palette"></i> 🔴</button>
-                <button class="format-btn" onclick="setColor('blue')"><i class="fas fa-palette"></i> 🔵</button>
+                <button class="format-btn" onclick="formatText('bold')"><i class="fas fa-bold"></i></button>
+                <button class="format-btn" onclick="formatText('italic')"><i class="fas fa-italic"></i></button>
+                <button class="format-btn" onclick="formatText('underline')"><i class="fas fa-underline"></i></button>
+                <button class="format-btn" onclick="formatText('strikeThrough')"><i class="fas fa-strikethrough"></i></button>
+                <button class="format-btn" onclick="formatText('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
+                <button class="format-btn" onclick="formatText('insertOrderedList')"><i class="fas fa-list-ol"></i></button>
+                <button class="format-btn" onclick="setColor('red')"><i class="fas fa-circle" style="color: red;"></i></button>
+                <button class="format-btn" onclick="setColor('blue')"><i class="fas fa-circle" style="color: blue;"></i></button>
+                <button class="format-btn" onclick="setColor('green')"><i class="fas fa-circle" style="color: green;"></i></button>
             </div>
 
             <!-- Content Area -->
@@ -432,9 +523,17 @@
                 <div id="note-content" class="editor-body" contenteditable="true" placeholder="Tulis catatan di sini..."></div>
             </div>
 
+            <!-- Bottom Actions - SEPERTI GAMBAR: HAPUS, SALIN, SIMPAN -->
             <div class="bottom-actions">
-                <button class="btn btn-outline" onclick="copyToClipboard()"><i class="fas fa-copy"></i> Salin</button>
-                <button class="btn btn-primary" onclick="saveNote()"><i class="fas fa-save"></i> Simpan</button>
+                <button class="btn btn-danger" onclick="deleteNote()">
+                    <i class="fas fa-trash-alt"></i> HAPUS
+                </button>
+                <button class="btn btn-copy" onclick="copyToClipboard()">
+                    <i class="fas fa-copy"></i> SALIN
+                </button>
+                <button class="btn btn-primary" onclick="saveNote()">
+                    <i class="fas fa-save"></i> SIMPAN
+                </button>
             </div>
         </div>
     </div>
@@ -449,7 +548,7 @@
                 <button onclick="importFromText()" style="background:#2196f3; color:white;"><i class="fas fa-upload"></i> Restore</button>
                 <button onclick="closeBackupModal()" style="background:#9e9e9e; color:white;">Tutup</button>
             </div>
-            <small style="display:block; margin-top:12px;">Salin teks untuk backup, tempel untuk restore</small>
+            <small style="display:block; margin-top:12px; color:#666;">Salin teks untuk backup, tempel untuk restore</small>
         </div>
     </div>
 
@@ -481,6 +580,17 @@
             localStorage.setItem('notes_sqlite_pro', JSON.stringify(notes));
         }
         
+        function showToast(message, isError = false) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i> ${message}`;
+            toast.style.background = isError ? 'rgba(244, 67, 54, 0.9)' : 'rgba(0,0,0,0.8)';
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.remove();
+            }, 2000);
+        }
+        
         // Render notes list
         function renderNotes(filteredNotes = null) {
             const container = document.getElementById('notes-list');
@@ -489,7 +599,7 @@
             container.innerHTML = '';
             
             if (data.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:50px; color:#aaa;"><i class="fas fa-book-open"></i><p>Belum ada catatan</p></div>';
+                container.innerHTML = '<div style="text-align:center; padding:50px; color:#aaa;"><i class="fas fa-book-open" style="font-size: 48px; margin-bottom: 16px;"></i><p>Belum ada catatan</p><p style="font-size: 12px;">Tekan + untuk membuat catatan baru</p></div>';
                 return;
             }
             
@@ -501,7 +611,7 @@
                 const preview = note.content.replace(/<[^>]*>/g, '').substring(0, 60);
                 card.innerHTML = `
                     <h3>${escapeHtml(note.title || 'Tanpa Judul')}</h3>
-                    <p>${escapeHtml(preview)}</p>
+                    <p>${escapeHtml(preview) || '(Kosong)'}</p>
                     <span class="note-date"><i class="far fa-calendar-alt"></i> ${note.date}</span>
                 `;
                 container.appendChild(card);
@@ -561,6 +671,8 @@
             }, 100);
             
             // Listen to content changes for undo/redo
+            contentDiv.removeEventListener('input', onContentChange);
+            titleInput.removeEventListener('input', onTitleChange);
             contentDiv.addEventListener('input', onContentChange);
             titleInput.addEventListener('input', onTitleChange);
         }
@@ -578,17 +690,24 @@
             const content = document.getElementById('note-content').innerHTML;
             const newState = JSON.stringify({ title, content });
             
-            if (currentContent !== newState) {
-                undoStack.push(currentContent);
+            if (currentContent !== newState && newState !== '{"title":"","content":""}') {
+                if (currentContent !== null && currentContent !== undefined) {
+                    undoStack.push(currentContent);
+                }
                 currentContent = newState;
-                redoStack = []; // Clear redo on new change
+                redoStack = [];
                 // Limit stack size
                 if (undoStack.length > 50) undoStack.shift();
+            } else if (currentContent === null) {
+                currentContent = newState;
             }
         }
         
         function undoAction() {
-            if (undoStack.length === 0) return;
+            if (undoStack.length === 0) {
+                showToast('Tidak ada yang bisa di-undo', true);
+                return;
+            }
             
             const prevState = undoStack.pop();
             if (prevState) {
@@ -597,11 +716,15 @@
                 document.getElementById('note-title').value = title;
                 document.getElementById('note-content').innerHTML = content;
                 currentContent = prevState;
+                showToast('Undo berhasil');
             }
         }
         
         function redoAction() {
-            if (redoStack.length === 0) return;
+            if (redoStack.length === 0) {
+                showToast('Tidak ada yang bisa di-redo', true);
+                return;
+            }
             
             const nextState = redoStack.pop();
             if (nextState) {
@@ -610,6 +733,7 @@
                 document.getElementById('note-title').value = title;
                 document.getElementById('note-content').innerHTML = content;
                 currentContent = nextState;
+                showToast('Redo berhasil');
             }
         }
         
@@ -628,13 +752,13 @@
         
         function copyToClipboard() {
             const title = document.getElementById('note-title').value;
-            const content = document.getElementById('note-content').innerText || document.getElementById('note-content').textContent;
-            const fullText = `${title}\n\n${content}`;
+            const contentText = document.getElementById('note-content').innerText || document.getElementById('note-content').textContent;
+            const fullText = `${title}\n\n${contentText}`;
             
             navigator.clipboard.writeText(fullText).then(() => {
-                alert('✓ Catatan disalin ke clipboard');
+                showToast('✓ Catatan disalin ke clipboard');
             }).catch(() => {
-                alert('Gagal menyalin');
+                showToast('Gagal menyalin', true);
             });
         }
         
@@ -672,15 +796,25 @@
             }
             
             saveToStorage();
+            showToast('Catatan berhasil disimpan');
             closeEditor();
             renderNotes();
         }
         
         function deleteNote() {
+            if (!currentId && document.getElementById('editor-screen').classList.contains('active')) {
+                if (confirm('Hapus catatan ini?')) {
+                    closeEditor();
+                }
+                return;
+            }
+            
             if (!currentId) return;
+            
             if (confirm('Yakin ingin menghapus catatan ini?')) {
                 notes = notes.filter(n => n.id !== currentId);
                 saveToStorage();
+                showToast('Catatan dihapus');
                 closeEditor();
                 renderNotes();
             }
@@ -696,6 +830,11 @@
             const titleInput = document.getElementById('note-title');
             contentDiv.removeEventListener('input', onContentChange);
             titleInput.removeEventListener('input', onTitleChange);
+            
+            // Reset undo stacks
+            undoStack = [];
+            redoStack = [];
+            currentContent = null;
         }
         
         // Backup & Restore with Text (SQLite style export/import)
@@ -717,14 +856,14 @@
             const textarea = document.getElementById('backup-text');
             textarea.value = jsonStr;
             textarea.select();
-            alert('Data backup siap disalin. Pilih semua teks lalu copy.');
+            showToast('Data backup siap disalin');
         }
         
         function importFromText() {
             const textarea = document.getElementById('backup-text');
             const rawText = textarea.value.trim();
             if (!rawText) {
-                alert('Masukkan data backup terlebih dahulu!');
+                showToast('Masukkan data backup terlebih dahulu!', true);
                 return;
             }
             
@@ -753,10 +892,10 @@
                     saveToStorage();
                     renderNotes();
                     closeBackupModal();
-                    alert('Restore berhasil!');
+                    showToast(`Restore ${importedNotes.length} catatan berhasil!`);
                 }
             } catch (err) {
-                alert('Format backup tidak valid: ' + err.message);
+                showToast('Format backup tidak valid: ' + err.message, true);
             }
         }
         
@@ -782,20 +921,17 @@
         // Initialize
         loadData();
         
-        // Additional: handle contenteditable placeholder
+        // Add placeholder for contenteditable
         document.addEventListener('DOMContentLoaded', () => {
             const contentDiv = document.getElementById('note-content');
             if (contentDiv) {
                 contentDiv.addEventListener('focus', () => {
                     if (contentDiv.innerText === '') {
-                        contentDiv.innerHTML = '';
+                        // keep empty
                     }
                 });
             }
         });
-        
-        // Add SQLite-like database simulation message
-        console.log('SQLite style storage aktif dengan backup text & restore');
     </script>
 </body>
 </html>
