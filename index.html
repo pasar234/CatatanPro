@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Catatan Pintar Pro + Rich Editor</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -10,6 +10,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         :root {
@@ -27,12 +28,13 @@
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
             background: var(--bg-light);
             color: var(--text-dark);
             height: 100vh;
             overflow: hidden;
-            -webkit-tap-highlight-color: transparent;
+            position: fixed;
+            width: 100%;
         }
 
         /* Screens */
@@ -42,6 +44,7 @@
             flex-direction: column;
             overflow: hidden;
             position: relative;
+            background: var(--bg-light);
         }
 
         .screen.active {
@@ -52,12 +55,13 @@
         .app-bar {
             background: var(--primary);
             color: white;
-            padding: 16px 20px;
+            padding: 14px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             flex-shrink: 0;
+            z-index: 10;
         }
 
         .app-bar h1 {
@@ -91,11 +95,14 @@
             padding: 8px 0;
         }
 
-        /* Notes List */
+        /* Notes List - SCROLLABLE */
         .notes-area {
             flex: 1;
             overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
             padding: 8px 0;
+            padding-bottom: 80px;
         }
 
         .note-card {
@@ -103,6 +110,7 @@
             border-bottom: 1px solid var(--border);
             cursor: pointer;
             transition: background 0.2s;
+            background: white;
         }
 
         .note-card:active {
@@ -157,12 +165,13 @@
             transform: scale(0.95);
         }
 
-        /* Editor Container */
+        /* Editor Container - FULL HEIGHT WITH SCROLL */
         .editor-container {
             display: flex;
             flex-direction: column;
             height: 100%;
             background: var(--bg-light);
+            position: relative;
         }
 
         .editor-header {
@@ -218,10 +227,6 @@
             transform: scale(0.96);
         }
 
-        .action-btn i {
-            font-size: 0.9rem;
-        }
-
         /* Formatting Toolbar - Keyboard Style */
         .format-toolbar {
             display: flex;
@@ -232,7 +237,13 @@
             border-bottom: 1px solid var(--border);
             flex-shrink: 0;
             overflow-x: auto;
+            overflow-y: hidden;
             -webkit-overflow-scrolling: touch;
+            white-space: nowrap;
+        }
+
+        .format-toolbar::-webkit-scrollbar {
+            height: 3px;
         }
 
         .format-btn {
@@ -250,6 +261,7 @@
             color: var(--text-dark);
             min-width: 44px;
             justify-content: center;
+            flex-shrink: 0;
         }
 
         .format-btn:active {
@@ -259,12 +271,14 @@
             transform: scale(0.95);
         }
 
-        /* Input Area */
-        .editor-content-area {
+        /* SCROLLABLE CONTENT AREA - FIX FOR ANDROID */
+        .editor-scroll-area {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
+            overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
+            padding: 20px;
+            padding-bottom: 120px;
         }
 
         .editor-title {
@@ -289,7 +303,7 @@
             outline: none;
             font-size: 1rem;
             line-height: 1.6;
-            min-height: 200px;
+            min-height: 300px;
             background: transparent;
             font-family: inherit;
         }
@@ -298,15 +312,11 @@
             outline: none;
         }
 
-        [contenteditable="true"]:focus {
-            outline: none;
-        }
-
-        /* Bottom Actions - SEPERTI GAMBAR: HAPUS, SALIN, SIMPAN */
+        /* Bottom Actions */
         .bottom-actions {
             display: flex;
             gap: 12px;
-            padding: 16px 20px;
+            padding: 14px 20px;
             background: white;
             border-top: 1px solid var(--border);
             flex-shrink: 0;
@@ -332,37 +342,22 @@
             transform: scale(0.97);
         }
 
-        /* Tombol HAPUS - seperti gambar */
         .btn-danger {
             background: var(--danger);
             color: white;
             box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
         }
 
-        .btn-danger:active {
-            background: #d32f2f;
-        }
-
-        /* Tombol SALIN - seperti gambar */
         .btn-copy {
             background: #2196f3;
             color: white;
             box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
         }
 
-        .btn-copy:active {
-            background: #1976d2;
-        }
-
-        /* Tombol SIMPAN - seperti gambar */
         .btn-primary {
             background: var(--primary);
             color: white;
             box-shadow: 0 2px 8px rgba(63, 81, 181, 0.3);
-        }
-
-        .btn-primary:active {
-            background: var(--primary-dark);
         }
 
         /* Modal */
@@ -405,11 +400,6 @@
             }
         }
 
-        .modal-content h3 {
-            margin-bottom: 16px;
-            color: var(--primary);
-        }
-
         .modal-content textarea {
             width: 100%;
             height: 200px;
@@ -435,20 +425,15 @@
             border: none;
             cursor: pointer;
             font-weight: 500;
-            transition: all 0.2s;
         }
 
-        .modal-buttons button:active {
-            transform: scale(0.96);
-        }
-
-        /* Toast Notification */
+        /* Toast */
         .toast {
             position: fixed;
             bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.85);
             color: white;
             padding: 10px 20px;
             border-radius: 30px;
@@ -456,6 +441,7 @@
             z-index: 1100;
             animation: fadeInOut 2s ease;
             pointer-events: none;
+            white-space: nowrap;
         }
 
         @keyframes fadeInOut {
@@ -463,11 +449,6 @@
             15% { opacity: 1; transform: translateX(-50%) translateY(0); }
             85% { opacity: 1; transform: translateX(-50%) translateY(0); }
             100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-        }
-
-        /* Utility */
-        .hidden {
-            display: none;
         }
     </style>
 </head>
@@ -504,26 +485,26 @@
                 <button class="action-btn" onclick="redoAction()"><i class="fas fa-redo"></i> Redo</button>
             </div>
 
-            <!-- Formatting Toolbar - Keyboard Style -->
+            <!-- Formatting Toolbar -->
             <div class="format-toolbar" id="format-toolbar">
-                <button class="format-btn" onclick="formatText('bold')"><i class="fas fa-bold"></i></button>
-                <button class="format-btn" onclick="formatText('italic')"><i class="fas fa-italic"></i></button>
-                <button class="format-btn" onclick="formatText('underline')"><i class="fas fa-underline"></i></button>
-                <button class="format-btn" onclick="formatText('strikeThrough')"><i class="fas fa-strikethrough"></i></button>
-                <button class="format-btn" onclick="formatText('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
-                <button class="format-btn" onclick="formatText('insertOrderedList')"><i class="fas fa-list-ol"></i></button>
+                <button class="format-btn" onclick="formatText('bold')"><i class="fas fa-bold"></i> B</button>
+                <button class="format-btn" onclick="formatText('italic')"><i class="fas fa-italic"></i> I</button>
+                <button class="format-btn" onclick="formatText('underline')"><i class="fas fa-underline"></i> U</button>
+                <button class="format-btn" onclick="formatText('strikeThrough')"><i class="fas fa-strikethrough"></i> S</button>
+                <button class="format-btn" onclick="formatText('insertUnorderedList')"><i class="fas fa-list-ul"></i> •</button>
+                <button class="format-btn" onclick="formatText('insertOrderedList')"><i class="fas fa-list-ol"></i> 1.</button>
                 <button class="format-btn" onclick="setColor('red')"><i class="fas fa-circle" style="color: red;"></i></button>
                 <button class="format-btn" onclick="setColor('blue')"><i class="fas fa-circle" style="color: blue;"></i></button>
                 <button class="format-btn" onclick="setColor('green')"><i class="fas fa-circle" style="color: green;"></i></button>
             </div>
 
-            <!-- Content Area -->
-            <div class="editor-content-area" id="editor-scroll-area">
+            <!-- SCROLLABLE CONTENT AREA - FIXED FOR ANDROID -->
+            <div class="editor-scroll-area" id="editor-scroll-area">
                 <input type="text" id="note-title" class="editor-title" placeholder="Judul Catatan...">
-                <div id="note-content" class="editor-body" contenteditable="true" placeholder="Tulis catatan di sini..."></div>
+                <div id="note-content" class="editor-body" contenteditable="true"></div>
             </div>
 
-            <!-- Bottom Actions - SEPERTI GAMBAR: HAPUS, SALIN, SIMPAN -->
+            <!-- Bottom Actions -->
             <div class="bottom-actions">
                 <button class="btn btn-danger" onclick="deleteNote()">
                     <i class="fas fa-trash-alt"></i> HAPUS
@@ -538,7 +519,7 @@
         </div>
     </div>
 
-    <!-- Backup/Restore Modal (Text & SQLite Style) -->
+    <!-- Backup/Restore Modal -->
     <div id="backup-modal" class="modal">
         <div class="modal-content">
             <h3><i class="fas fa-database"></i> Backup & Restore</h3>
@@ -553,16 +534,12 @@
     </div>
 
     <script>
-        // Data management with SQLite style (localStorage)
         let notes = [];
         let currentId = null;
-        
-        // Undo/Redo stacks for content
         let undoStack = [];
         let redoStack = [];
         let currentContent = '';
-        
-        // Load data
+
         function loadData() {
             const stored = localStorage.getItem('notes_sqlite_pro');
             if (stored) {
@@ -570,28 +547,23 @@
                     notes = JSON.parse(stored);
                 } catch(e) { notes = []; }
             }
-            if (!notes || notes.length === 0) {
-                notes = [];
-            }
+            if (!notes) notes = [];
             renderNotes();
         }
-        
+
         function saveToStorage() {
             localStorage.setItem('notes_sqlite_pro', JSON.stringify(notes));
         }
-        
+
         function showToast(message, isError = false) {
             const toast = document.createElement('div');
             toast.className = 'toast';
             toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i> ${message}`;
-            toast.style.background = isError ? 'rgba(244, 67, 54, 0.9)' : 'rgba(0,0,0,0.8)';
+            toast.style.background = isError ? 'rgba(244, 67, 54, 0.9)' : 'rgba(0,0,0,0.85)';
             document.body.appendChild(toast);
-            setTimeout(() => {
-                toast.remove();
-            }, 2000);
+            setTimeout(() => toast.remove(), 2000);
         }
-        
-        // Render notes list
+
         function renderNotes(filteredNotes = null) {
             const container = document.getElementById('notes-list');
             const data = filteredNotes || notes;
@@ -603,6 +575,7 @@
                 return;
             }
             
+            // Tampilkan dengan urutan terbaru di atas (id terbesar/terbaru)
             data.sort((a, b) => b.id - a.id);
             data.forEach(note => {
                 const card = document.createElement('div');
@@ -617,7 +590,7 @@
                 container.appendChild(card);
             });
         }
-        
+
         function escapeHtml(str) {
             if (!str) return '';
             return str.replace(/[&<>]/g, function(m) {
@@ -627,7 +600,7 @@
                 return m;
             });
         }
-        
+
         function filterNotes() {
             const keyword = document.getElementById('search-input').value.toLowerCase();
             const filtered = notes.filter(n => 
@@ -636,10 +609,8 @@
             );
             renderNotes(filtered);
         }
-        
-        // Editor functions
+
         function openEditor(note = null) {
-            // Reset undo/redo
             undoStack = [];
             redoStack = [];
             
@@ -659,18 +630,23 @@
                 deleteIcon.style.display = 'none';
             }
             
-            // Save initial state
             saveUndoState();
             
             document.getElementById('list-screen').classList.remove('active');
             document.getElementById('editor-screen').classList.add('active');
             
-            // Focus title
+            // Reset scroll position
+            const scrollArea = document.getElementById('editor-scroll-area');
+            if (scrollArea) {
+                scrollArea.scrollTop = 0;
+            }
+            
+            // Focus title after delay for Android
             setTimeout(() => {
                 titleInput.focus();
-            }, 100);
+            }, 300);
             
-            // Listen to content changes for undo/redo
+            // Add event listeners
             contentDiv.removeEventListener('input', onContentChange);
             titleInput.removeEventListener('input', onTitleChange);
             contentDiv.addEventListener('input', onContentChange);
@@ -679,6 +655,18 @@
         
         function onContentChange() {
             saveUndoState();
+            // Auto-scroll to cursor when typing
+            setTimeout(() => {
+                const selection = window.getSelection();
+                if (selection && selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    const scrollArea = document.getElementById('editor-scroll-area');
+                    if (scrollArea && range.startContainer.parentElement) {
+                        const element = range.startContainer.parentElement;
+                        element.scrollIntoView({ behavior: 'auto', block: 'nearest' });
+                    }
+                }
+            }, 10);
         }
         
         function onTitleChange() {
@@ -691,14 +679,13 @@
             const newState = JSON.stringify({ title, content });
             
             if (currentContent !== newState && newState !== '{"title":"","content":""}') {
-                if (currentContent !== null && currentContent !== undefined) {
+                if (currentContent !== null && currentContent !== undefined && currentContent !== '') {
                     undoStack.push(currentContent);
                 }
                 currentContent = newState;
                 redoStack = [];
-                // Limit stack size
                 if (undoStack.length > 50) undoStack.shift();
-            } else if (currentContent === null) {
+            } else if (currentContent === null || currentContent === '') {
                 currentContent = newState;
             }
         }
@@ -708,7 +695,6 @@
                 showToast('Tidak ada yang bisa di-undo', true);
                 return;
             }
-            
             const prevState = undoStack.pop();
             if (prevState) {
                 redoStack.push(currentContent);
@@ -725,7 +711,6 @@
                 showToast('Tidak ada yang bisa di-redo', true);
                 return;
             }
-            
             const nextState = redoStack.pop();
             if (nextState) {
                 undoStack.push(currentContent);
@@ -737,7 +722,6 @@
             }
         }
         
-        // Rich text formatting
         function formatText(command) {
             document.execCommand(command, false, null);
             document.getElementById('note-content').focus();
@@ -768,25 +752,30 @@
             const contentText = document.getElementById('note-content').innerText || '';
             
             if (!title && !contentText) {
-                if (confirm('Catatan kosong, simpan tetap?')) {
-                    // allow empty
-                } else return;
+                if (confirm('Catatan kosong, simpan tetap?')) {}
+                else return;
             }
             
             const now = new Date();
             const dateStr = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
             
             if (currentId) {
+                // UPDATE: catatan yang diedit menjadi yang TERATAS
                 const index = notes.findIndex(n => n.id === currentId);
                 if (index !== -1) {
-                    notes[index] = {
+                    const updatedNote = {
                         ...notes[index],
                         title: title || 'Tanpa Judul',
                         content: contentHtml,
                         date: dateStr
                     };
+                    // Hapus dari posisi lama
+                    notes.splice(index, 1);
+                    // Tambahkan di paling awal (teratas)
+                    notes.unshift(updatedNote);
                 }
             } else {
+                // Catatan baru langsung di paling awal
                 notes.unshift({
                     id: Date.now(),
                     title: title || 'Tanpa Judul',
@@ -825,19 +814,16 @@
             document.getElementById('list-screen').classList.add('active');
             filterNotes();
             
-            // Remove listeners
             const contentDiv = document.getElementById('note-content');
             const titleInput = document.getElementById('note-title');
             contentDiv.removeEventListener('input', onContentChange);
             titleInput.removeEventListener('input', onTitleChange);
             
-            // Reset undo stacks
             undoStack = [];
             redoStack = [];
             currentContent = null;
         }
         
-        // Backup & Restore with Text (SQLite style export/import)
         function showBackupRestoreModal() {
             document.getElementById('backup-modal').classList.add('active');
         }
@@ -869,17 +855,10 @@
             
             try {
                 const parsed = JSON.parse(rawText);
-                let importedNotes = null;
+                let importedNotes = parsed.notes && Array.isArray(parsed.notes) ? parsed.notes : (Array.isArray(parsed) ? parsed : null);
                 
-                if (parsed.notes && Array.isArray(parsed.notes)) {
-                    importedNotes = parsed.notes;
-                } else if (Array.isArray(parsed)) {
-                    importedNotes = parsed;
-                } else {
-                    throw new Error('Format tidak valid');
-                }
+                if (!importedNotes) throw new Error('Format tidak valid');
                 
-                // Validate each note has required fields
                 importedNotes = importedNotes.map(n => ({
                     id: n.id || Date.now() + Math.random(),
                     title: n.title || 'Tanpa Judul',
@@ -899,20 +878,17 @@
             }
         }
         
-        // Handle keyboard visibility for better UX
+        // Handle keyboard and scroll for Android
         let originalHeight = window.innerHeight;
         window.addEventListener('resize', () => {
             const editorScreen = document.getElementById('editor-screen');
-            if (editorScreen.classList.contains('active')) {
+            if (editorScreen && editorScreen.classList.contains('active')) {
                 const currentHeight = window.innerHeight;
                 const scrollArea = document.getElementById('editor-scroll-area');
-                if (originalHeight - currentHeight > 150) {
-                    // Keyboard visible
-                    if (scrollArea) {
-                        setTimeout(() => {
-                            scrollArea.scrollTop = scrollArea.scrollHeight;
-                        }, 100);
-                    }
+                if (originalHeight - currentHeight > 150 && scrollArea) {
+                    setTimeout(() => {
+                        scrollArea.scrollTop = scrollArea.scrollHeight;
+                    }, 100);
                 }
                 originalHeight = currentHeight;
             }
@@ -921,17 +897,11 @@
         // Initialize
         loadData();
         
-        // Add placeholder for contenteditable
-        document.addEventListener('DOMContentLoaded', () => {
-            const contentDiv = document.getElementById('note-content');
-            if (contentDiv) {
-                contentDiv.addEventListener('focus', () => {
-                    if (contentDiv.innerText === '') {
-                        // keep empty
-                    }
-                });
-            }
-        });
+        // Placeholder for contenteditable
+        const contentDiv = document.getElementById('note-content');
+        if (contentDiv) {
+            contentDiv.addEventListener('focus', () => {});
+        }
     </script>
 </body>
 </html>
