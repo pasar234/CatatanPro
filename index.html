@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Catatan Pro SQLite + Rich Text</title>
+    <title>Catatan Pro SQLite + Undo/Redo + Aksi</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/undomanager@1.0.5/dist/undomanager.min.js"></script>
     <style>
         :root {
-            --primary: #6200ee;
+            --primary: #6200ee; /* Ungu Simpan */
             --bg-light: #ffffff;
-            --danger: #b00020;
+            --danger: #b00020;  /* Merah Hapus */
+            --border-salin: #9c27b0; /* Ungu Salin (sesuai gambar) */
             --text-dark: #000000;
             --text-gray: #757575;
             --border-color: #eeeeee;
@@ -25,11 +27,22 @@
             overflow: hidden;
         }
 
+        /* Nav Bar - Diperbarui untuk Undo/Redo */
         .app-bar {
             background: #3f51b5; color: white;
             padding: 15px; display: flex;
             align-items: center; justify-content: space-between;
+            position: relative;
         }
+
+        .editor-nav-title {
+            position: absolute; left: 50%; transform: translateX(-50%);
+            font-size: 18px; font-weight: bold; text-transform: uppercase;
+        }
+
+        .nav-icons-right { display: flex; gap: 15px; align-items: center; }
+        .nav-icons-right i { cursor: pointer; font-size: 20px; }
+        .nav-icons-right i.disabled { color: rgba(255, 255, 255, 0.4); cursor: not-allowed; }
 
         .screen { display: none; height: 100vh; flex-direction: column; }
         .screen.active { display: flex; }
@@ -39,11 +52,11 @@
         .search-container input { flex: 1; border: none; background: transparent; outline: none; font-size: 18px; }
         
         .content-area { flex: 1; overflow-y: auto; padding-bottom: 80px; }
-        .note-card { padding: 15px 20px; border-bottom: 1px solid var(--border-color); }
+        .note-card { padding: 15px 20px; border-bottom: 1px solid var(--border-color); cursor: pointer;}
         .note-card h3 { margin: 0 0 5px 0; font-size: 18px; }
         .note-card p { color: var(--text-gray); margin: 0; font-size: 14px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
-        /* Rich Text Toolbar */
+        /* Rich Text Toolbar (Tetap, tetapi kita tambahkan tombol formatting seperti di gambar 2 jika Anda ingin, di sini saya pertahankan yang dasar) */
         .toolbar {
             display: flex; gap: 10px; padding: 10px;
             background: #eeeeee; border-bottom: 1px solid #ddd;
@@ -56,14 +69,50 @@
         .toolbar button.active { background: var(--primary); color: white; }
 
         /* Editor */
-        .editor-container { flex: 1; display: flex; flex-direction: column; padding: 15px; }
-        .input-title { font-size: 22px; font-weight: bold; border: none; outline: none; margin-bottom: 10px; width: 100%; }
-        .input-body { flex: 1; font-size: 18px; outline: none; overflow-y: auto; line-height: 1.5; min-height: 200px; }
+        .editor-container { flex: 1; display: flex; flex-direction: column; padding: 20px; }
+        .input-title { font-size: 24px; font-weight: bold; border: none; outline: none; margin-bottom: 20px; width: 100%; color: black; background: transparent;}
+        .input-body { flex: 1; font-size: 18px; outline: none; overflow-y: auto; line-height: 1.6; min-height: 200px; color: black; background: transparent;}
 
-        .footer-actions { display: flex; gap: 10px; padding: 15px; border-top: 1px solid #eee; }
-        .btn { flex: 1; padding: 12px; border-radius: 6px; font-weight: bold; border: none; cursor: pointer; }
-        .btn-filled { background: var(--primary); color: white; }
-        .btn-outline { border: 1px solid var(--danger); color: var(--danger); background: white; }
+        /* Footer Actions - Dirombak agar sesuai Gambar 2 */
+        .footer-actions { 
+            display: flex; gap: 15px; 
+            padding: 15px 20px; 
+            border-top: 1px solid #eee; 
+            background: white;
+            justify-content: space-between;
+        }
+        
+        .btn { 
+            flex: 1; 
+            padding: 14px; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            font-size: 16px; 
+            text-transform: uppercase; 
+            cursor: pointer; 
+            text-align: center; 
+            border: 2px solid transparent; 
+        }
+
+        /* HAPUS: Merah, Outline */
+        .btn-hapus { 
+            border-color: var(--danger); 
+            color: var(--danger); 
+            background: white; 
+        }
+        
+        /* SALIN: Ungu Cerah, Outline (Sesuai Gambar 2) */
+        .btn-salin { 
+            border-color: var(--border-salin); 
+            color: var(--border-salin); 
+            background: white; 
+        }
+
+        /* SIMPAN: Ungu Primary, Terisi (Sesuai Gambar 2) */
+        .btn-simpan { 
+            background: var(--primary); 
+            color: white; 
+        }
 
         .fab {
             position: fixed; right: 20px; bottom: 20px;
@@ -71,6 +120,7 @@
             background: var(--primary); color: white;
             display: flex; align-items: center; justify-content: center;
             font-size: 24px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            cursor: pointer; z-index: 10;
         }
     </style>
 </head>
@@ -83,10 +133,10 @@
             <i class="fas fa-ellipsis-v" onclick="toggleMenu()"></i>
         </div>
 
-        <div id="backup-menu" style="display: none; padding: 15px; border-bottom: 1px solid #ddd; text-align: center;">
-            <button onclick="exportToSQLite()" style="background:#4caf50; color:white; border:none; padding:10px; border-radius:4px;">Simpan ke .db (SQLite)</button>
+        <div id="backup-menu" style="display: none; padding: 15px; border-bottom: 1px solid #ddd; text-align: center; background: #fafafa;">
+            <button onclick="exportToSQLite()" style="background:#4caf50; color:white; border:none; padding:12px; border-radius:6px; font-weight: bold; cursor: pointer;">Simpan ke .db (SQLite)</button>
             <input type="file" id="import-db" hidden accept=".db" onchange="importFromSQLite(event)">
-            <button onclick="document.getElementById('import-db').click()" style="background:#2196f3; color:white; border:none; padding:10px; border-radius:4px; margin-left:5px;">Buka .db</button>
+            <button onclick="document.getElementById('import-db').click()" style="background:#2196f3; color:white; border:none; padding:12px; border-radius:6px; font-weight: bold; cursor: pointer; margin-left:10px;">Buka .db</button>
         </div>
 
         <div class="search-container">
@@ -101,8 +151,11 @@
     <div id="screen-editor" class="screen">
         <div class="app-bar">
             <i class="fas fa-arrow-left" onclick="closeEditor()"></i>
-            <span>Edit Catatan</span>
-            <div></div>
+            <span class="editor-nav-title">EDIT CATATAN</span>
+            <div class="nav-icons-right">
+                <i class="fas fa-undo disabled" id="btn-undo" onclick="undoAction()"></i>
+                <i class="fas fa-redo disabled" id="btn-redo" onclick="redoAction()"></i>
+            </div>
         </div>
 
         <div class="toolbar">
@@ -110,7 +163,6 @@
             <button onclick="execCmd('italic')"><i class="fas fa-italic"></i></button>
             <button onclick="execCmd('underline')"><i class="fas fa-underline"></i></button>
             <button onclick="execCmd('strikeThrough')"><i class="fas fa-strikethrough"></i></button>
-            <button onclick="execCmd('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
         </div>
 
         <div class="editor-container">
@@ -119,61 +171,149 @@
         </div>
 
         <div class="footer-actions">
-            <button class="btn btn-outline" id="btn-delete" onclick="deleteNote()">HAPUS</button>
-            <button class="btn btn-filled" onclick="saveNote()">SIMPAN</button>
+            <button class="btn btn-hapus" id="btn-delete" onclick="deleteNote()">HAPUS</button>
+            <button class="btn btn-salin" onclick="copyNote()">SALIN</button>
+            <button class="btn btn-simpan" onclick="saveNote()">SIMPAN</button>
         </div>
     </div>
 
     <script>
         let notes = JSON.parse(localStorage.getItem('notes_db_sqlite')) || [];
         let currentId = null;
+        let originalContent = ''; // Untuk pengecekan perubahan Undo
 
-        // PWA Service Worker Registration
+        // Inisialisasi UndoManager
+        const undoManager = new UndoManager();
+
+        // Elemen Editor
+        const noteTitleInput = document.getElementById('note-title');
+        const noteContentInput = document.getElementById('note-content');
+        const btnUndo = document.getElementById('btn-undo');
+        const btnRedo = document.getElementById('btn-redo');
+
+        // PWA SW
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(err => console.log("SW failed", err));
         }
 
-        // Editor Functions
+        // --- Logika Editor (Rich Text) ---
         function execCmd(cmd) {
             document.execCommand(cmd, false, null);
+            saveToHistory(); // Simpan riwayat setelah formatting
         }
 
+        // --- Logika Editor (Undo/Redo) ---
+        // PENTING: contenteditable tidak mudah untuk undoManager. Kita menangkap input dan merekam perubahan.
+        let isEditing = false;
+        noteContentInput.addEventListener('input', () => {
+            if (!isEditing) {
+                isEditing = true;
+                setTimeout(() => {
+                    saveToHistory();
+                    isEditing = false;
+                }, 300); // Debounce history saving
+            }
+        });
+
+        noteTitleInput.addEventListener('input', () => saveToHistory()); // Simpan judul juga di riwayat undo
+
+        function saveToHistory() {
+            const currentTitle = noteTitleInput.value;
+            const currentBody = noteContentInput.innerHTML;
+
+            undoManager.add({
+                undo: () => {
+                    noteTitleInput.value = currentTitle;
+                    noteContentInput.innerHTML = currentBody;
+                    updateUndoRedoUI();
+                },
+                redo: () => {
+                    // Dalam redo, kita add lagi kondisi 'sebelumnya' (currentTitle, currentBody) 
+                    // dan 'sesudahnya' (setalah input user). Ini agak kompleks untuk contenteditable murni.
+                    // Cara termudah adalah menyimpan status setelah add(undo).
+                    saveToHistory(); // Merekam status ini sebagai redoable
+                    // noteContentInput.focus(); // Fokus kembali
+                }
+            });
+            updateUndoRedoUI();
+        }
+
+        // UndoManager add default behaviour for undo/redo
+        undoManager.setCallback(() => updateUndoRedoUI());
+
+        function updateUndoRedoUI() {
+            if (undoManager.hasUndo()) {
+                btnUndo.classList.remove('disabled');
+            } else {
+                btnUndo.classList.add('disabled');
+            }
+
+            if (undoManager.hasRedo()) {
+                btnRedo.classList.remove('disabled');
+            } else {
+                btnRedo.classList.add('disabled');
+            }
+        }
+
+        function undoAction() {
+            if (undoManager.hasUndo()) undoManager.undo();
+        }
+
+        function redoAction() {
+            if (undoManager.hasRedo()) undoManager.redo();
+        }
+
+
+        // --- Logika Aplikasi ---
         function renderNotes(data = notes) {
             const list = document.getElementById('notes-list');
             list.innerHTML = '';
+            
+            if (data.length === 0) {
+                list.innerHTML = '<div style="text-align:center; padding: 50px; color:#aaa;">Belum ada catatan.</div>';
+                return;
+            }
+
             data.sort((a,b) => b.id - a.id).forEach(note => {
                 const div = document.createElement('div');
                 div.className = 'note-card';
                 div.onclick = () => openEditor(note);
+                
                 // Clean HTML for preview
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = note.content;
-                const textPreview = tempDiv.innerText || tempDiv.textContent;
+                const textPreview = tempDiv.innerText || tempDiv.textContent || '(Tanpa konten)';
                 
-                div.innerHTML = `<h3>${note.title}</h3><p>${textPreview.substring(0, 80)}...</p>`;
+                div.innerHTML = `<h3>${note.title}</h3><p>${textPreview.substring(0, 100)}...</p>`;
                 list.appendChild(div);
             });
         }
 
         function openEditor(note = null) {
+            undoManager.clear(); // Bersihkan riwayat undo saat membuka editor baru
             if (note) {
                 currentId = note.id;
-                document.getElementById('note-title').value = note.title;
-                document.getElementById('note-content').innerHTML = note.content;
+                noteTitleInput.value = note.title;
+                noteContentInput.innerHTML = note.content;
                 document.getElementById('btn-delete').style.display = 'block';
             } else {
                 currentId = null;
-                document.getElementById('note-title').value = '';
-                document.getElementById('note-content').innerHTML = '';
+                noteTitleInput.value = '';
+                noteContentInput.innerHTML = '';
                 document.getElementById('btn-delete').style.display = 'none';
+                noteTitleInput.focus();
             }
+            
+            originalContent = noteContentInput.innerHTML; // Simpan untuk perbandingan undo/redo
+            updateUndoRedoUI(); // Reset status tombol undo/redo
+
             document.getElementById('screen-list').classList.remove('active');
             document.getElementById('screen-editor').classList.add('active');
         }
 
         function saveNote() {
-            const title = document.getElementById('note-title').value.trim() || "Tanpa Judul";
-            const content = document.getElementById('note-content').innerHTML;
+            const title = noteTitleInput.value.trim() || "Tanpa Judul";
+            const content = noteContentInput.innerHTML;
             if (currentId) {
                 notes = notes.map(n => n.id === currentId ? {...n, title, content} : n);
             } else {
@@ -184,7 +324,7 @@
         }
 
         function deleteNote() {
-            if(confirm("Hapus?")) {
+            if(confirm("Hapus catatan ini?")) {
                 notes = notes.filter(n => n.id !== currentId);
                 localStorage.setItem('notes_db_sqlite', JSON.stringify(notes));
                 closeEditor();
@@ -192,9 +332,51 @@
         }
 
         function closeEditor() {
+            // Periksa perubahan (opsional, untuk memperingatkan pengguna)
+            if (currentId && (originalContent !== noteContentInput.innerHTML)) {
+                // if (!confirm("Perubahan belum disimpan. Tutup editor?")) return;
+            }
+
             document.getElementById('screen-editor').classList.remove('active');
             document.getElementById('screen-list').classList.add('active');
             renderNotes();
+        }
+
+        // --- Logika SALIN (Copy) ---
+        function copyNote() {
+            const title = noteTitleInput.value;
+            const contentHTML = noteContentInput.innerHTML;
+            
+            // Konversi HTML sederhana ke teks murni (untuk disalin)
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = contentHTML;
+            const contentText = tempDiv.innerText || tempDiv.textContent;
+
+            const finalString = `${title}\n\n${contentText}`;
+
+            // Salin ke Clipboard menggunakan API modern
+            navigator.clipboard.writeText(finalString).then(() => {
+                // Berhasil
+                // alert('Catatan disalin ke clipboard!'); // Ganti dengan notifikasi/Toast yang lebih baik jika perlu
+                showToast("Catatan disalin!");
+            }, (err) => {
+                // Gagal
+                console.error('Gagal menyalin: ', err);
+                alert('Gagal menyalin catatan.');
+            });
+        }
+
+        // Toast sederhana untuk notifikasi
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:white; padding:10px 20px; border-radius:8px; z-index:100; font-size:14px; text-transform:uppercase; font-weight:bold;';
+            toast.innerText = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.5s';
+                setTimeout(() => toast.remove(), 500);
+            }, 2000);
         }
 
         // SQLite Export Logic (Using JSON as shim for DB file)
@@ -206,6 +388,7 @@
             a.href = url;
             a.download = "catatan_backup.db";
             a.click();
+            toggleMenu();
         }
 
         function importFromSQLite(event) {
@@ -220,10 +403,11 @@
                     renderNotes();
                     alert("Data berhasil dipulihkan!");
                 } catch(err) {
-                    alert("File tidak valid.");
+                    alert("File backup tidak valid.");
                 }
             };
             reader.readAsText(file);
+            toggleMenu();
         }
 
         function toggleMenu() {
@@ -240,4 +424,4 @@
         renderNotes();
     </script>
 </body>
-</html>
+    </html>
