@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Catatan Pintar Pro + Rich Editor</title>
+    <title>Catatan Pintar Pro - Visible Typing</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -19,7 +19,6 @@
             --accent: #ff4081;
             --danger: #f44336;
             --success: #4caf50;
-            --warning: #ff9800;
             --text-dark: #212121;
             --text-gray: #757575;
             --bg-light: #ffffff;
@@ -37,7 +36,6 @@
             width: 100%;
         }
 
-        /* Screens */
         .screen {
             display: none;
             height: 100vh;
@@ -51,7 +49,6 @@
             display: flex;
         }
 
-        /* App Bar */
         .app-bar {
             background: var(--primary);
             color: white;
@@ -59,7 +56,6 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             flex-shrink: 0;
             z-index: 10;
         }
@@ -75,7 +71,6 @@
             padding: 8px;
         }
 
-        /* Search */
         .search-container {
             padding: 12px 16px;
             background: var(--bg-gray);
@@ -95,7 +90,6 @@
             padding: 8px 0;
         }
 
-        /* Notes List - SCROLLABLE */
         .notes-area {
             flex: 1;
             overflow-y: auto;
@@ -140,7 +134,6 @@
             display: block;
         }
 
-        /* FAB */
         .fab {
             position: fixed;
             right: 20px;
@@ -165,7 +158,6 @@
             transform: scale(0.95);
         }
 
-        /* Editor Container - FULL HEIGHT WITH SCROLL */
         .editor-container {
             display: flex;
             flex-direction: column;
@@ -197,7 +189,6 @@
             font-weight: 500;
         }
 
-        /* Undo/Redo Bar */
         .action-bar {
             display: flex;
             gap: 12px;
@@ -224,26 +215,23 @@
         .action-btn:active {
             background: var(--primary);
             color: white;
-            transform: scale(0.96);
         }
 
-        /* Formatting Toolbar - Keyboard Style */
         .format-toolbar {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            padding: 10px 12px;
+            gap: 6px;
+            padding: 8px 12px;
             background: #f8f9fa;
             border-bottom: 1px solid var(--border);
             flex-shrink: 0;
             overflow-x: auto;
             overflow-y: hidden;
             -webkit-overflow-scrolling: touch;
-            white-space: nowrap;
         }
 
         .format-toolbar::-webkit-scrollbar {
-            height: 3px;
+            height: 2px;
         }
 
         .format-btn {
@@ -251,7 +239,7 @@
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 8px 12px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
@@ -259,7 +247,7 @@
             align-items: center;
             gap: 4px;
             color: var(--text-dark);
-            min-width: 44px;
+            min-width: 40px;
             justify-content: center;
             flex-shrink: 0;
         }
@@ -267,18 +255,21 @@
         .format-btn:active {
             background: var(--primary);
             color: white;
-            border-color: var(--primary);
-            transform: scale(0.95);
         }
 
-        /* SCROLLABLE CONTENT AREA - FIX FOR ANDROID */
-        .editor-scroll-area {
+        /* KEYBOARD FIX - CRITICAL */
+        .editor-scroll-wrapper {
             flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .editor-scroll-area {
+            height: 100%;
             overflow-y: auto;
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
-            padding: 20px;
-            padding-bottom: 120px;
+            padding: 16px 20px 80px 20px;
         }
 
         .editor-title {
@@ -288,7 +279,7 @@
             border: none;
             outline: none;
             margin-bottom: 20px;
-            padding: 0;
+            padding: 8px 0;
             background: transparent;
             font-family: inherit;
         }
@@ -303,39 +294,47 @@
             outline: none;
             font-size: 1rem;
             line-height: 1.6;
-            min-height: 300px;
+            min-height: 400px;
             background: transparent;
             font-family: inherit;
+            padding: 4px 0;
         }
 
         [contenteditable="true"] {
             outline: none;
         }
 
-        /* Bottom Actions */
+        /* Visual indicator for cursor position */
+        .cursor-tracker {
+            position: absolute;
+            width: 2px;
+            background: var(--primary);
+            display: none;
+        }
+
         .bottom-actions {
             display: flex;
             gap: 12px;
-            padding: 14px 20px;
+            padding: 12px 16px;
             background: white;
             border-top: 1px solid var(--border);
             flex-shrink: 0;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
         }
 
         .btn {
             flex: 1;
-            padding: 14px 12px;
-            border-radius: 12px;
+            padding: 12px;
+            border-radius: 10px;
             font-weight: 600;
             border: none;
             cursor: pointer;
-            font-size: 0.95rem;
-            transition: all 0.2s;
+            font-size: 0.9rem;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            transition: all 0.2s;
         }
 
         .btn:active {
@@ -345,22 +344,18 @@
         .btn-danger {
             background: var(--danger);
             color: white;
-            box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
         }
 
         .btn-copy {
             background: #2196f3;
             color: white;
-            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
         }
 
         .btn-primary {
             background: var(--primary);
             color: white;
-            box-shadow: 0 2px 8px rgba(63, 81, 181, 0.3);
         }
 
-        /* Modal */
         .modal {
             position: fixed;
             top: 0;
@@ -372,7 +367,6 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            backdrop-filter: blur(4px);
         }
 
         .modal.active {
@@ -386,18 +380,6 @@
             width: 90%;
             max-width: 340px;
             text-align: center;
-            animation: modalSlideIn 0.3s ease;
-        }
-
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
 
         .modal-content textarea {
@@ -409,7 +391,6 @@
             border-radius: 12px;
             font-family: monospace;
             font-size: 12px;
-            resize: vertical;
         }
 
         .modal-buttons {
@@ -427,7 +408,6 @@
             font-weight: 500;
         }
 
-        /* Toast */
         .toast {
             position: fixed;
             bottom: 80px;
@@ -450,10 +430,14 @@
             85% { opacity: 1; transform: translateX(-50%) translateY(0); }
             100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
         }
+
+        /* Highlight for cursor visibility */
+        .editor-body:focus {
+            background: #fffef7;
+        }
     </style>
 </head>
 <body>
-    <!-- List Screen -->
     <div id="list-screen" class="screen active">
         <div class="app-bar">
             <i class="fas fa-sticky-note"></i>
@@ -470,7 +454,6 @@
         <button class="fab" onclick="openEditor()"><i class="fas fa-plus"></i></button>
     </div>
 
-    <!-- Editor Screen -->
     <div id="editor-screen" class="screen">
         <div class="editor-container">
             <div class="editor-header">
@@ -479,14 +462,12 @@
                 <i class="fas fa-trash-alt" onclick="deleteNote()" id="delete-icon" style="color: var(--danger); opacity: 0.7;"></i>
             </div>
 
-            <!-- Undo/Redo Bar -->
             <div class="action-bar">
                 <button class="action-btn" onclick="undoAction()"><i class="fas fa-undo"></i> Undo</button>
                 <button class="action-btn" onclick="redoAction()"><i class="fas fa-redo"></i> Redo</button>
             </div>
 
-            <!-- Formatting Toolbar -->
-            <div class="format-toolbar" id="format-toolbar">
+            <div class="format-toolbar">
                 <button class="format-btn" onclick="formatText('bold')"><i class="fas fa-bold"></i> B</button>
                 <button class="format-btn" onclick="formatText('italic')"><i class="fas fa-italic"></i> I</button>
                 <button class="format-btn" onclick="formatText('underline')"><i class="fas fa-underline"></i> U</button>
@@ -498,28 +479,23 @@
                 <button class="format-btn" onclick="setColor('green')"><i class="fas fa-circle" style="color: green;"></i></button>
             </div>
 
-            <!-- SCROLLABLE CONTENT AREA - FIXED FOR ANDROID -->
-            <div class="editor-scroll-area" id="editor-scroll-area">
-                <input type="text" id="note-title" class="editor-title" placeholder="Judul Catatan...">
-                <div id="note-content" class="editor-body" contenteditable="true"></div>
+            <div class="editor-scroll-wrapper">
+                <div class="editor-scroll-area" id="editor-scroll-area">
+                    <input type="text" id="note-title" class="editor-title" placeholder="Judul Catatan...">
+                    <div id="note-content" class="editor-body" contenteditable="true"></div>
+                    <!-- Extra spacer for comfortable typing -->
+                    <div style="height: 150px;"></div>
+                </div>
             </div>
 
-            <!-- Bottom Actions -->
-            <div class="bottom-actions">
-                <button class="btn btn-danger" onclick="deleteNote()">
-                    <i class="fas fa-trash-alt"></i> HAPUS
-                </button>
-                <button class="btn btn-copy" onclick="copyToClipboard()">
-                    <i class="fas fa-copy"></i> SALIN
-                </button>
-                <button class="btn btn-primary" onclick="saveNote()">
-                    <i class="fas fa-save"></i> SIMPAN
-                </button>
+            <div class="bottom-actions" id="bottom-actions">
+                <button class="btn btn-danger" onclick="deleteNote()"><i class="fas fa-trash-alt"></i> HAPUS</button>
+                <button class="btn btn-copy" onclick="copyToClipboard()"><i class="fas fa-copy"></i> SALIN</button>
+                <button class="btn btn-primary" onclick="saveNote()"><i class="fas fa-save"></i> SIMPAN</button>
             </div>
         </div>
     </div>
 
-    <!-- Backup/Restore Modal -->
     <div id="backup-modal" class="modal">
         <div class="modal-content">
             <h3><i class="fas fa-database"></i> Backup & Restore</h3>
@@ -529,7 +505,7 @@
                 <button onclick="importFromText()" style="background:#2196f3; color:white;"><i class="fas fa-upload"></i> Restore</button>
                 <button onclick="closeBackupModal()" style="background:#9e9e9e; color:white;">Tutup</button>
             </div>
-            <small style="display:block; margin-top:12px; color:#666;">Salin teks untuk backup, tempel untuk restore</small>
+            <small style="display:block; margin-top:12px;">Salin teks untuk backup, tempel untuk restore</small>
         </div>
     </div>
 
@@ -539,6 +515,7 @@
         let undoStack = [];
         let redoStack = [];
         let currentContent = '';
+        let lastScrollPosition = 0;
 
         function loadData() {
             const stored = localStorage.getItem('notes_sqlite_pro');
@@ -575,7 +552,6 @@
                 return;
             }
             
-            // Tampilkan dengan urutan terbaru di atas (id terbesar/terbaru)
             data.sort((a, b) => b.id - a.id);
             data.forEach(note => {
                 const card = document.createElement('div');
@@ -610,69 +586,57 @@
             renderNotes(filtered);
         }
 
-        function openEditor(note = null) {
-            undoStack = [];
-            redoStack = [];
-            
-            const titleInput = document.getElementById('note-title');
-            const contentDiv = document.getElementById('note-content');
-            const deleteIcon = document.getElementById('delete-icon');
-            
-            if (note) {
-                currentId = note.id;
-                titleInput.value = note.title || '';
-                contentDiv.innerHTML = note.content || '';
-                deleteIcon.style.display = 'block';
-            } else {
-                currentId = null;
-                titleInput.value = '';
-                contentDiv.innerHTML = '';
-                deleteIcon.style.display = 'none';
-            }
-            
-            saveUndoState();
-            
-            document.getElementById('list-screen').classList.remove('active');
-            document.getElementById('editor-screen').classList.add('active');
-            
-            // Reset scroll position
+        // CRITICAL: Function to ensure cursor is always visible when typing
+        function scrollToCursor() {
             const scrollArea = document.getElementById('editor-scroll-area');
-            if (scrollArea) {
-                scrollArea.scrollTop = 0;
+            const contentDiv = document.getElementById('note-content');
+            
+            if (!scrollArea || !contentDiv) return;
+            
+            const selection = window.getSelection();
+            if (selection && selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                const cursorRect = range.getBoundingClientRect();
+                const scrollRect = scrollArea.getBoundingClientRect();
+                const containerRect = scrollArea.parentElement?.getBoundingClientRect();
+                
+                // Calculate if cursor is outside visible area
+                const cursorTop = cursorRect.top - scrollRect.top;
+                const cursorBottom = cursorRect.bottom - scrollRect.top;
+                const visibleTop = scrollArea.scrollTop;
+                const visibleBottom = scrollArea.scrollTop + scrollRect.height;
+                
+                // Adjust to keep cursor in visible area with margin
+                const margin = 100;
+                
+                if (cursorBottom > visibleBottom - margin) {
+                    // Scroll down to show cursor
+                    scrollArea.scrollTop = cursorBottom - scrollRect.height + margin + 50;
+                } else if (cursorTop < visibleTop + margin) {
+                    // Scroll up to show cursor
+                    scrollArea.scrollTop = cursorTop - margin;
+                }
             }
-            
-            // Focus title after delay for Android
-            setTimeout(() => {
-                titleInput.focus();
-            }, 300);
-            
-            // Add event listeners
-            contentDiv.removeEventListener('input', onContentChange);
-            titleInput.removeEventListener('input', onTitleChange);
-            contentDiv.addEventListener('input', onContentChange);
-            titleInput.addEventListener('input', onTitleChange);
         }
-        
+
+        // Auto-scroll on input events
         function onContentChange() {
             saveUndoState();
-            // Auto-scroll to cursor when typing
-            setTimeout(() => {
-                const selection = window.getSelection();
-                if (selection && selection.rangeCount > 0) {
-                    const range = selection.getRangeAt(0);
-                    const scrollArea = document.getElementById('editor-scroll-area');
-                    if (scrollArea && range.startContainer.parentElement) {
-                        const element = range.startContainer.parentElement;
-                        element.scrollIntoView({ behavior: 'auto', block: 'nearest' });
-                    }
-                }
-            }, 10);
+            // Immediate scroll to cursor
+            setTimeout(() => scrollToCursor(), 10);
         }
         
         function onTitleChange() {
             saveUndoState();
+            const titleInput = document.getElementById('note-title');
+            const scrollArea = document.getElementById('editor-scroll-area');
+            if (titleInput && scrollArea) {
+                setTimeout(() => {
+                    titleInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 50);
+            }
         }
-        
+
         function saveUndoState() {
             const title = document.getElementById('note-title').value;
             const content = document.getElementById('note-content').innerHTML;
@@ -703,6 +667,7 @@
                 document.getElementById('note-content').innerHTML = content;
                 currentContent = prevState;
                 showToast('Undo berhasil');
+                setTimeout(() => scrollToCursor(), 100);
             }
         }
         
@@ -719,6 +684,7 @@
                 document.getElementById('note-content').innerHTML = content;
                 currentContent = nextState;
                 showToast('Redo berhasil');
+                setTimeout(() => scrollToCursor(), 100);
             }
         }
         
@@ -726,12 +692,14 @@
             document.execCommand(command, false, null);
             document.getElementById('note-content').focus();
             saveUndoState();
+            setTimeout(() => scrollToCursor(), 50);
         }
         
         function setColor(color) {
             document.execCommand('foreColor', false, color);
             document.getElementById('note-content').focus();
             saveUndoState();
+            setTimeout(() => scrollToCursor(), 50);
         }
         
         function copyToClipboard() {
@@ -760,7 +728,6 @@
             const dateStr = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
             
             if (currentId) {
-                // UPDATE: catatan yang diedit menjadi yang TERATAS
                 const index = notes.findIndex(n => n.id === currentId);
                 if (index !== -1) {
                     const updatedNote = {
@@ -769,13 +736,10 @@
                         content: contentHtml,
                         date: dateStr
                     };
-                    // Hapus dari posisi lama
                     notes.splice(index, 1);
-                    // Tambahkan di paling awal (teratas)
                     notes.unshift(updatedNote);
                 }
             } else {
-                // Catatan baru langsung di paling awal
                 notes.unshift({
                     id: Date.now(),
                     title: title || 'Tanpa Judul',
@@ -809,6 +773,53 @@
             }
         }
         
+        function openEditor(note = null) {
+            undoStack = [];
+            redoStack = [];
+            
+            const titleInput = document.getElementById('note-title');
+            const contentDiv = document.getElementById('note-content');
+            const deleteIcon = document.getElementById('delete-icon');
+            
+            if (note) {
+                currentId = note.id;
+                titleInput.value = note.title || '';
+                contentDiv.innerHTML = note.content || '';
+                deleteIcon.style.display = 'block';
+            } else {
+                currentId = null;
+                titleInput.value = '';
+                contentDiv.innerHTML = '';
+                deleteIcon.style.display = 'none';
+            }
+            
+            saveUndoState();
+            
+            document.getElementById('list-screen').classList.remove('active');
+            document.getElementById('editor-screen').classList.add('active');
+            
+            const scrollArea = document.getElementById('editor-scroll-area');
+            if (scrollArea) {
+                scrollArea.scrollTop = 0;
+            }
+            
+            // Add event listeners for cursor tracking
+            contentDiv.removeEventListener('input', onContentChange);
+            titleInput.removeEventListener('input', onTitleChange);
+            contentDiv.removeEventListener('keyup', scrollToCursor);
+            contentDiv.removeEventListener('click', scrollToCursor);
+            
+            contentDiv.addEventListener('input', onContentChange);
+            titleInput.addEventListener('input', onTitleChange);
+            contentDiv.addEventListener('keyup', scrollToCursor);
+            contentDiv.addEventListener('click', scrollToCursor);
+            
+            // Focus and ensure visibility
+            setTimeout(() => {
+                titleInput.focus();
+            }, 300);
+        }
+        
         function closeEditor() {
             document.getElementById('editor-screen').classList.remove('active');
             document.getElementById('list-screen').classList.add('active');
@@ -818,6 +829,8 @@
             const titleInput = document.getElementById('note-title');
             contentDiv.removeEventListener('input', onContentChange);
             titleInput.removeEventListener('input', onTitleChange);
+            contentDiv.removeEventListener('keyup', scrollToCursor);
+            contentDiv.removeEventListener('click', scrollToCursor);
             
             undoStack = [];
             redoStack = [];
@@ -878,30 +891,27 @@
             }
         }
         
-        // Handle keyboard and scroll for Android
-        let originalHeight = window.innerHeight;
+        // Handle resize for keyboard visibility
+        let lastHeight = window.innerHeight;
         window.addEventListener('resize', () => {
             const editorScreen = document.getElementById('editor-screen');
             if (editorScreen && editorScreen.classList.contains('active')) {
                 const currentHeight = window.innerHeight;
-                const scrollArea = document.getElementById('editor-scroll-area');
-                if (originalHeight - currentHeight > 150 && scrollArea) {
-                    setTimeout(() => {
-                        scrollArea.scrollTop = scrollArea.scrollHeight;
-                    }, 100);
+                if (lastHeight - currentHeight > 100) {
+                    // Keyboard appeared
+                    setTimeout(() => scrollToCursor(), 100);
+                } else if (currentHeight - lastHeight > 100) {
+                    // Keyboard disappeared
+                    const scrollArea = document.getElementById('editor-scroll-area');
+                    if (scrollArea) {
+                        scrollArea.scrollTop = lastScrollPosition;
+                    }
                 }
-                originalHeight = currentHeight;
+                lastHeight = currentHeight;
             }
         });
         
-        // Initialize
         loadData();
-        
-        // Placeholder for contenteditable
-        const contentDiv = document.getElementById('note-content');
-        if (contentDiv) {
-            contentDiv.addEventListener('focus', () => {});
-        }
     </script>
 </body>
 </html>
